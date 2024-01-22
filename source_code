@@ -1,0 +1,56 @@
+import os
+import shutil
+import zipfile
+
+def organize_files():
+    """Organizes files in the current directory into folders based on their first letter,
+       unzipping .zip files and deleting them after extraction."""
+
+    current_dir = os.getcwd()
+    archive_folder = os.path.join(current_dir, 'Archived Zip')
+    number_folder = os.path.join(current_dir, '#')
+
+    # Create Archive folder if it doesn't exist
+    if not os.path.exists(archive_folder):
+        os.makedirs(archive_folder)
+
+    # Extract all zip files and move them to the Archive folder
+    for filename in os.listdir(current_dir):
+        file_path = os.path.join(current_dir, filename)
+
+        if filename.endswith(".zip"):
+            extract_zip(file_path, current_dir)
+            shutil.move(file_path, os.path.join(archive_folder, filename))
+
+    # Organize the remaining files
+    for filename in os.listdir(current_dir):
+        file_path = os.path.join(current_dir, filename)
+
+        if os.path.isdir(file_path):
+            continue  # Skip directories
+
+        if filename[0].isdigit():
+            organize_file(file_path, number_folder)
+        else:
+            organize_file(file_path, current_dir)
+
+def extract_zip(zip_filepath, extract_folder):
+    """Extracts the specified zip file to the given folder."""
+
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(extract_folder)  # Extract files to the specified folder
+
+def organize_file(file_path, destination_folder):
+    """Organizes a single file into the appropriate folder based on its first letter."""
+
+    first_letter = os.path.basename(file_path)[0].upper()
+    target_dir = os.path.join(destination_folder, first_letter)
+
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    destination_file = os.path.join(target_dir, os.path.basename(file_path))
+    shutil.move(file_path, destination_file)
+
+if __name__ == "__main__":
+    organize_files()
