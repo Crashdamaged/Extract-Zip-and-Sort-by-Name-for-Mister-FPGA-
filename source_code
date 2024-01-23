@@ -4,7 +4,7 @@ import zipfile
 
 def organize_files():
     """Organizes files in the current directory into folders based on their first letter,
-       unzipping .zip files and deleting them after extraction."""
+       unzipping .zip files and mpve them to an Archive folder after extraction."""
 
     current_dir = os.getcwd()
     archive_folder = os.path.join(current_dir, 'Archived Zip')

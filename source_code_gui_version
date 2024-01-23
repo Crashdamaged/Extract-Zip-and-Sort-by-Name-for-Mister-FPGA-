@@ -1,0 +1,94 @@
+import os
+import shutil
+import zipfile
+import tkinter as tk
+from tkinter import filedialog
+
+def organize_files(selected_folder, unzip_before_sorting):
+    """Organizes files in the selected folder into folders based on their first letter,
+       unzipping .zip files and moving them to an Archive folder after extraction."""
+
+    current_dir = selected_folder
+    archive_folder = os.path.join(current_dir, 'Archived Zip')
+    number_folder = os.path.join(current_dir, '#')
+
+    # Create Archive folder if it doesn't exist
+    if not os.path.exists(archive_folder):
+        os.makedirs(archive_folder)
+
+    # Extract all zip files and move them to the Archive folder
+    for filename in os.listdir(current_dir):
+        file_path = os.path.join(current_dir, filename)
+
+        if filename.endswith(".zip"):
+            if unzip_before_sorting:
+                extract_zip(file_path, current_dir)
+            shutil.move(file_path, os.path.join(archive_folder, filename))
+
+    # Organize the remaining files
+    for filename in os.listdir(current_dir):
+        file_path = os.path.join(current_dir, filename)
+
+        if os.path.isdir(file_path):
+            continue  # Skip directories
+
+        if filename[0].isdigit():
+            organize_file(file_path, number_folder)
+        else:
+            organize_file(file_path, current_dir)
+
+def extract_zip(zip_filepath, extract_folder):
+    """Extracts the specified zip file to the given folder."""
+
+    with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
+        zip_ref.extractall(extract_folder)  # Extract files to the specified folder
+
+def organize_file(file_path, destination_folder):
+    """Organizes a single file into the appropriate folder based on its first letter."""
+
+    first_letter = os.path.basename(file_path)[0].upper()
+    target_dir = os.path.join(destination_folder, first_letter)
+
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    destination_file = os.path.join(target_dir, os.path.basename(file_path))
+    shutil.move(file_path, destination_file)
+
+def browse_folder():
+    """Opens a file dialog to allow the user to select a folder for organization."""
+    selected_folder = filedialog.askdirectory()
+    if selected_folder:
+        folder_var.set(selected_folder)
+
+# Callback function for the Organize button
+def organize_button_clicked():
+    selected_folder = folder_var.get()
+    unzip_before_sorting = unzip_var.get()
+    organize_files(selected_folder, unzip_before_sorting)
+
+# Create the main window
+root = tk.Tk()
+root.title("File Organizer")
+
+# Variables for storing user inputs
+folder_var = tk.StringVar()
+unzip_var = tk.BooleanVar()
+
+# Create and configure widgets
+folder_label = tk.Label(root, text="Select Folder:")
+folder_entry = tk.Entry(root, textvariable=folder_var, state='readonly', width=30)
+browse_button = tk.Button(root, text="Browse", command=browse_folder)
+unzip_checkbox = tk.Checkbutton(root, text="Unzip before sorting", variable=unzip_var)
+
+organize_button = tk.Button(root, text="Organize Files", command=organize_button_clicked)
+
+# Layout widgets using grid
+folder_label.grid(row=0, column=0, padx=5, pady=5)
+folder_entry.grid(row=0, column=1, padx=5, pady=5)
+browse_button.grid(row=0, column=2, padx=5, pady=5)
+unzip_checkbox.grid(row=1, column=1, padx=5, pady=5)
+organize_button.grid(row=2, column=0, columnspan=3, pady=10)
+
+# Start the Tkinter event loop
+root.mainloop()
